@@ -3,30 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Flask (Frontend)</title>
+    <title>Chatbot Flask</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .chat-container { width: 100%; max-width: 400px; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
-        .chat-header { background-color: #ff5722; color: white; padding: 15px; text-align: center; font-size: 1.2em; }
-        .chat-messages { flex-grow: 1; padding: 15px; max-height: 400px; overflow-y: auto; background-color: #e9ebee; }
-        .message { margin-bottom: 10px; padding: 8px 12px; border-radius: 15px; max-width: 80%; word-wrap: break-word; }
-        .user-message { background-color: #007bff; color: white; margin-left: auto; text-align: right; }
-        .chatbot-message { background-color: #f1f0f0; color: #333; margin-right: auto; }
-        .chat-input { display: flex; padding: 10px; border-top: 1px solid #ccc; }
-        .chat-input input[type="text"] { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; margin-right: 10px; outline: none; }
-        .chat-input button { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 20px; cursor: pointer; transition: background-color 0.3s; }
-        .chat-input button:hover { background-color: #218838; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: linear-gradient(90deg, #ff5722, #ff8a50);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: #e9ebee;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .chatbot-message {
+            background-color: #f1f0f0;
+            color: #333;
+            margin-right: auto;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background-color: #fff;
+        }
+        .chat-input input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            margin-right: 10px;
+            outline: none;
+        }
+        .chat-input button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .chat-input button:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
 
 <div class="chat-container">
     <div class="chat-header">
-        🤖 Chatbot Simples com Flask API
+        🤖 Chatbot Flask
     </div>
     <div class="chat-messages" id="chat-messages">
         <div class="message chatbot-message">
-            Bem-vindo! Este chat se comunica com uma API Flask. Pergunte 'ola' ou 'qual seu nome'.
+            Bem-vindo! Pergunte "ola" ou "qual seu nome".
         </div>
     </div>
     <div class="chat-input">
@@ -36,7 +104,7 @@
 </div>
 
 <script>
-    const API_URL = 'http://127.0.0.1:5000/api/chat'; // Endpoint da sua API Flask
+    const API_URL = '/api/chat'; // endpoint relativo para funcionar no deploy
     const chatMessages = document.getElementById('chat-messages');
     const userInput = document.getElementById('user-input');
 
@@ -45,50 +113,38 @@
         messageDiv.classList.add('message', sender + '-message');
         messageDiv.textContent = text;
         chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        chatMessages.scrollTop = chatMessages.scrollHeight; // rolagem automática
     }
 
     async function sendMessage() {
         const pergunta = userInput.value.trim();
-        if (pergunta === "") return;
+        if (!pergunta) return;
 
-        // 1. Exibir a mensagem do usuário
         appendMessage(pergunta, 'user');
-        userInput.value = ''; // Limpa o input
+        userInput.value = '';
 
         try {
-            // 2. Enviar POST para a API Flask
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // Envia a pergunta do usuário no corpo da requisição JSON
-                body: JSON.stringify({ pergunta: pergunta }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pergunta })
             });
 
-            if (!response.ok) {
-                throw new Error(`Erro da API: ${response.status} ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`Erro: ${response.status}`);
 
             const data = await response.json();
             const respostaBot = data.resposta_chatbot;
 
-            // 3. Exibir a resposta do chatbot
-            setTimeout(() => {
-                appendMessage(respostaBot, 'chatbot');
-            }, 500);
+            setTimeout(() => appendMessage(respostaBot, 'chatbot'), 300);
 
-        } catch (error) {
-            console.error('Erro ao conectar com a API Flask:', error);
-            appendMessage("Ops! Não consegui conectar à API Flask. Certifique-se de que o servidor está rodando.", 'chatbot');
+        } catch (err) {
+            console.error('Erro ao conectar à API Flask:', err);
+            appendMessage("Ops! Não consegui conectar à API.", 'chatbot');
         }
     }
 
     function handleKeyPress(event) {
-        if (event.key === 'Enter') {
-            sendMessage();
-        }
+        if (event.key === 'Enter') sendMessage();
     }
 </script>
 
